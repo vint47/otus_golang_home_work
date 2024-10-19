@@ -1,4 +1,4 @@
-module github.com/fixme_my_friend/hw01_hello_otus
+module github.com/vint47/otus_golang_home_work
 
 go 1.22
 
