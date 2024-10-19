@@ -17,7 +17,7 @@ func Unpack(s string) (string, error) {
 		if i+1 < len(s) {
 			chNext := string(s[i+1])
 			if numb, err := strconv.Atoi(chNext); err == nil {
-				if _, err := strconv.Atoi(s); err == nil {
+				if _, err := strconv.Atoi(ch); err == nil {
 					return "", ErrInvalidString
 				}
 				countCh = numb
