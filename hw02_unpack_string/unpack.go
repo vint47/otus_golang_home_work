@@ -10,12 +10,14 @@ var ErrInvalidString = errors.New("invalid string")
 
 func Unpack(s string) (string, error) {
 	var res strings.Builder
-	for i := 0; i < len(s); i++ {
-		ch := string(s[i])
+	sl := []rune(s)
+
+	for i, v := range sl {
+		ch := string(v)
 		countCh := 1
 
-		if i+1 < len(s) {
-			chNext := string(s[i+1])
+		if i+1 < len(sl) {
+			chNext := string(sl[i+1])
 			if numb, err := strconv.Atoi(chNext); err == nil {
 				if _, err := strconv.Atoi(ch); err == nil {
 					return "", ErrInvalidString
