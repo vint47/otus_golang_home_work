@@ -3,6 +3,8 @@ package hw03frequencyanalysis
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -79,4 +81,22 @@ func TestTop10(t *testing.T) {
 			require.Equal(t, expected, Top10(text))
 		}
 	})
+}
+
+func TestLess10Words(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected []string
+	}{
+		{input: "a aa bb aa b a a a bb xxx", expected: []string{"a", "aa", "bb", "b", "xxx"}},
+		{input: "a a a a a a a a a a a a", expected: []string{"a"}},
+		{input: "a bb a a a a a a a a a a", expected: []string{"a", "bb"}},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.input, func(t *testing.T) {
+			assert.Equal(t, tc.expected, Top10(tc.input))
+		})
+	}
 }
