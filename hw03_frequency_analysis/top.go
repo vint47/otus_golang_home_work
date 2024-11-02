@@ -11,7 +11,7 @@ func Top10(s string) []string {
 	sl := strings.Fields(s)
 
 	for _, word := range sl {
-		resMap[word] = resMap[word] + 1
+		resMap[word]++
 	}
 
 	type frequency struct {
