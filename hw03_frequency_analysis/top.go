@@ -26,7 +26,7 @@ func Top10(s string) []string {
 
 	sort.Slice(fr, func(i, j int) bool {
 		if fr[i].count == fr[j].count {
-			return strings.Compare(fr[i].word, fr[j].word) < 0
+			return fr[i].word < fr[j].word
 		}
 		return fr[i].count > fr[j].count
 	})
