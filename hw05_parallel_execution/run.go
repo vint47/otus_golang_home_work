@@ -38,7 +38,6 @@ func Run(tasks []Task, n, m int) error {
 		}
 
 		if countErrors >= m {
-			returnErr = ErrErrorsLimitExceeded
 			break
 		}
 	}
@@ -49,6 +48,7 @@ func Run(tasks []Task, n, m int) error {
 		for i := 0; i < n; i++ {
 			select {
 			case <-channelForErrors:
+				countErrors++
 			default:
 			}
 		}
@@ -56,6 +56,10 @@ func Run(tasks []Task, n, m int) error {
 
 	wg.Wait()
 	close(channelForErrors)
+
+	if countErrors >= m {
+		returnErr = ErrErrorsLimitExceeded
+	}
 
 	return returnErr
 }
