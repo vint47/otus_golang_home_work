@@ -6,7 +6,7 @@ import (
 )
 
 func Top10(s string) []string {
-	resMap := make(map[string]int, 0)
+	resMap := make(map[string]int)
 
 	sl := strings.Fields(s)
 
@@ -31,7 +31,7 @@ func Top10(s string) []string {
 		return fr[i].count > fr[j].count
 	})
 
-	res := make([]string, 0)
+	res := make([]string, 10)
 	for i := 0; i < min(10, len(fr)); i++ {
 		res = append(res, fr[i].word)
 	}
