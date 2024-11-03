@@ -4,6 +4,11 @@ import "sync"
 
 type Key string
 
+type CacheValue struct {
+	key   Key
+	value interface{}
+}
+
 type Cache interface {
 	Set(key Key, value interface{}) bool
 	Get(key Key) (interface{}, bool)
@@ -14,7 +19,6 @@ type lruCache struct {
 	capacity int
 	queue    List
 	items    map[Key]*ListItem
-	keys     map[*ListItem]Key
 	mu       sync.RWMutex
 }
 
@@ -23,7 +27,6 @@ func NewCache(capacity int) Cache {
 		capacity: capacity,
 		queue:    NewList(),
 		items:    make(map[Key]*ListItem, capacity),
-		keys:     make(map[*ListItem]Key, capacity),
 		mu:       sync.RWMutex{},
 	}
 }
@@ -34,7 +37,7 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 
 	listItem, exists := c.items[key]
 	if exists {
-		listItem.Value = value
+		listItem.Value = CacheValue{key: key, value: value}
 		c.queue.MoveToFront(listItem)
 
 		return true
@@ -42,14 +45,12 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 
 	if c.queue.Len() == c.capacity {
 		lastListItem := c.queue.Back()
-		delete(c.items, c.keys[lastListItem])
-		delete(c.keys, lastListItem)
+		delete(c.items, lastListItem.Value.(CacheValue).key)
 		c.queue.Remove(lastListItem)
 	}
 
-	listItem = c.queue.PushFront(value)
+	listItem = c.queue.PushFront(CacheValue{key: key, value: value})
 	c.items[key] = listItem
-	c.keys[listItem] = key
 
 	return false
 }
@@ -64,7 +65,7 @@ func (c *lruCache) Get(key Key) (interface{}, bool) {
 	}
 	c.queue.MoveToFront(listItem)
 
-	return listItem.Value, exists
+	return listItem.Value.(CacheValue).value, exists
 }
 
 func (c *lruCache) Clear() {
