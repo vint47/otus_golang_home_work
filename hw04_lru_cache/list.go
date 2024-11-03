@@ -91,20 +91,17 @@ func (l *list) MoveToFront(i *ListItem) {
 	}
 
 	i.Prev.Next = i.Next
-	i.Next = l.first
-	i.Prev = nil
-	l.first = i
-}
 
-func (l *list) MoveToBack(i *ListItem) {
-	if l.last == i {
-		return
+	if i.Next == nil {
+		l.last = i.Prev
+	} else {
+		i.Next.Prev = i.Prev
 	}
 
-	i.Next.Prev = i.Prev
-	i.Prev = l.last
-	i.Next = nil
-	l.last = i
+	i.Next = l.first
+	i.Prev = nil
+	l.first.Prev = i
+	l.first = i
 }
 
 func NewList() List {
