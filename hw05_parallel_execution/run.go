@@ -47,8 +47,8 @@ func Run(tasks []Task, n, m int) error {
 	//for i := 0; i < n; i++ {
 	//}
 
+	<-channelForErrors
 	wg.Wait()
-	//<-channelForErrors
 	close(channelForErrors)
 	//time.Sleep(time.Second * 3)
 	return returnErr
