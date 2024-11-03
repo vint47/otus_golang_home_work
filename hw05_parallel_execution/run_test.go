@@ -16,7 +16,7 @@ func TestRun(t *testing.T) {
 	defer goleak.VerifyNone(t)
 
 	t.Run("if were errors in first M tasks, than finished not more N+M tasks", func(t *testing.T) {
-		tasksCount := 8
+		tasksCount := 50
 		tasks := make([]Task, 0, tasksCount)
 
 		var runTasksCount int32
@@ -30,8 +30,8 @@ func TestRun(t *testing.T) {
 			})
 		}
 
-		workersCount := 2
-		maxErrorsCount := 2
+		workersCount := 10
+		maxErrorsCount := 23
 		err := Run(tasks, workersCount, maxErrorsCount)
 
 		require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded), "actual err - %v", err)
