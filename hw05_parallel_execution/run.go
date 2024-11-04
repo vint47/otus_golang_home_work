@@ -31,14 +31,16 @@ func Run(tasks []Task, n, m int) error {
 
 	for _, task := range tasks {
 		select {
-		case channel <- task:
 		case <-channelForErrors:
 			countErrors++
+		default:
 		}
 
 		if countErrors >= m {
 			break
 		}
+
+		channel <- task
 	}
 
 	close(channel)
