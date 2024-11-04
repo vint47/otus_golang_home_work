@@ -3,7 +3,6 @@ package hw05parallelexecution
 import (
 	"errors"
 	"sync"
-	"time"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
@@ -14,7 +13,7 @@ type Task func() error
 func Run(tasks []Task, n, m int) error {
 	wg := &sync.WaitGroup{}
 	channel := make(chan Task)
-	channelForErrors := make(chan int)
+	channelForErrors := make(chan int, n)
 	countErrors := 0
 	var returnErr error
 
@@ -43,18 +42,16 @@ func Run(tasks []Task, n, m int) error {
 	}
 
 	close(channel)
-	time.Sleep(time.Millisecond * time.Duration(100))
-	go func() {
-		for i := 0; i < n; i++ {
-			select {
-			case <-channelForErrors:
-				countErrors++
-			default:
-			}
-		}
-	}()
-
 	wg.Wait()
+
+	for i := 0; i < n; i++ {
+		select {
+		case <-channelForErrors:
+			countErrors++
+		default:
+		}
+	}
+
 	close(channelForErrors)
 
 	if countErrors >= m {
