@@ -3,6 +3,7 @@ package hw05parallelexecution
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
@@ -13,8 +14,8 @@ type Task func() error
 func Run(tasks []Task, n, m int) error {
 	wg := &sync.WaitGroup{}
 	channel := make(chan Task)
-	channelForErrors := make(chan int, n)
-	countErrors := 0
+
+	var countErrors, maxError uint32 = 0, uint32(m)
 	var returnErr error
 
 	wg.Add(n)
@@ -23,20 +24,14 @@ func Run(tasks []Task, n, m int) error {
 			defer wg.Done()
 			for task := range ch {
 				if err := task(); err != nil {
-					channelForErrors <- 0
+					atomic.AddUint32(&countErrors, 1)
 				}
 			}
 		}(channel)
 	}
 
 	for _, task := range tasks {
-		select {
-		case <-channelForErrors:
-			countErrors++
-		default:
-		}
-
-		if countErrors >= m {
+		if countErrors >= maxError {
 			break
 		}
 
@@ -46,17 +41,7 @@ func Run(tasks []Task, n, m int) error {
 	close(channel)
 	wg.Wait()
 
-	for i := 0; i < n; i++ {
-		select {
-		case <-channelForErrors:
-			countErrors++
-		default:
-		}
-	}
-
-	close(channelForErrors)
-
-	if countErrors >= m {
+	if countErrors >= maxError {
 		returnErr = ErrErrorsLimitExceeded
 	}
 
