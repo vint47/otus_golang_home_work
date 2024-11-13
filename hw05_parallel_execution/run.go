@@ -13,6 +13,7 @@ type Task func() error
 // Run starts tasks in n goroutines and stops its work when receiving m errors from tasks.
 func Run(tasks []Task, n, m int) error {
 	wg := &sync.WaitGroup{}
+	mu := &sync.RWMutex{}
 	channel := make(chan Task)
 
 	var countErrors, maxError uint32 = 0, uint32(m)
@@ -20,18 +21,22 @@ func Run(tasks []Task, n, m int) error {
 
 	wg.Add(n)
 	for i := 0; i < n; i++ {
-		go func(ch <-chan Task) {
+		go func() {
 			defer wg.Done()
-			for task := range ch {
+			for task := range channel {
 				if err := task(); err != nil {
 					atomic.AddUint32(&countErrors, 1)
 				}
 			}
-		}(channel)
+		}()
 	}
 
 	for _, task := range tasks {
-		if countErrors >= maxError {
+		mu.RLock()
+		isFinish := countErrors >= maxError
+		mu.RUnlock()
+
+		if isFinish {
 			break
 		}
 
