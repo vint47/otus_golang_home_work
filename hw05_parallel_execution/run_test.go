@@ -69,7 +69,6 @@ func TestRun(t *testing.T) {
 	})
 
 	t.Run("additional test for two long error", func(t *testing.T) {
-
 		tasksCount := 50
 		tasks := make([]Task, 0, tasksCount)
 
