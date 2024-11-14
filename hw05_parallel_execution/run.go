@@ -3,7 +3,6 @@ package hw05parallelexecution
 import (
 	"errors"
 	"sync"
-	"sync/atomic"
 )
 
 var ErrErrorsLimitExceeded = errors.New("errors limit exceeded")
@@ -25,7 +24,9 @@ func Run(tasks []Task, n, m int) error {
 			defer wg.Done()
 			for task := range channel {
 				if err := task(); err != nil {
-					atomic.AddUint32(&countErrors, 1)
+					mu.Lock()
+					countErrors++
+					mu.Unlock()
 				}
 			}
 		}()
