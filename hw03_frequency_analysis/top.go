@@ -31,7 +31,7 @@ func Top10(s string) []string {
 		return fr[i].count > fr[j].count
 	})
 
-	res := make([]string, 0, 10)
+	res := make([]string, 0, min(10, len(fr)))
 	for i := 0; i < min(10, len(fr)); i++ {
 		res = append(res, fr[i].word)
 	}
