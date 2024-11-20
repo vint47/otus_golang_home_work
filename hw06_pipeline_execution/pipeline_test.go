@@ -73,6 +73,7 @@ func TestPipeline(t *testing.T) {
 		abortDur := sleepPerStage * 2
 		go func() {
 			<-time.After(abortDur)
+			done <- struct{}{}
 			close(done)
 		}()
 
