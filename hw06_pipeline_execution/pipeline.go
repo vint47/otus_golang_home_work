@@ -25,36 +25,43 @@ func stageCover(done In, val interface{}, stage Stage) Out {
 
 	return out
 }
-
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
+	for _, stage := range stages {
+		in = stage(in)
+	}
+	return in
+}
+
+func ExecutePipeline_(in In, done In, stages ...Stage) Out {
 
 	localOut := make(Bi)
 
 	go func() {
 		defer close(localOut)
 
-		for {
-			select {
-			case <-done:
-				return
-			case value, okFromIn := <-in:
-				if !okFromIn {
+		for value := range in {
+			//for {
+			//	select {
+			//	case <-done:
+			//		return
+			//	case value, okFromIn := <-in:
+			//		if !okFromIn {
+			//			return
+			//		}
+			for _, stage := range stages {
+				select {
+				case <-done:
 					return
-				}
-				for _, stage := range stages {
-					select {
-					case <-done:
+				case val, ok := <-stageCover(done, value, stage):
+					if !ok {
 						return
-					case val, ok := <-stageCover(done, value, stage):
-						if !ok {
-							return
-						}
-						value = val
 					}
+					value = val
 				}
-				localOut <- value
 			}
-
+			localOut <- value
+			//	}
+			//
 		}
 	}()
 
