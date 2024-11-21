@@ -8,110 +8,46 @@ type (
 
 type Stage func(in In) (out Out)
 
-func stageCover(done In, val interface{}, stage Stage) Out {
-	out := make(Bi)
-	in := make(Bi)
-	in <- val
-
+func clearChanel(out Out) {
 	go func() {
-		defer close(out)
-		defer close(in)
-		select {
-		case <-done:
-			return
-		case out <- stage(in):
+		for temp := range out {
+			_ = temp
 		}
 	}()
-
-	return out
 }
+
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	for _, stage := range stages {
-		in = stage(in)
-	}
-	return in
-}
+	stageCover := func(in In, stage Stage) Out {
+		out := make(Bi)
 
-func ExecutePipeline_(in In, done In, stages ...Stage) Out {
+		go func() {
+			defer close(out)
+			stageOut := stage(in)
 
-	localOut := make(Bi)
-
-	go func() {
-		defer close(localOut)
-
-		for value := range in {
-			//for {
-			//	select {
-			//	case <-done:
-			//		return
-			//	case value, okFromIn := <-in:
-			//		if !okFromIn {
-			//			return
-			//		}
-			for _, stage := range stages {
+			for {
 				select {
 				case <-done:
+					clearChanel(stageOut)
 					return
-				case val, ok := <-stageCover(done, value, stage):
+				case val, ok := <-stageOut:
 					if !ok {
 						return
 					}
-					value = val
+					select {
+					case <-done:
+						return
+					case out <- val:
+					}
 				}
 			}
-			localOut <- value
-			//	}
-			//
-		}
-	}()
+		}()
 
-	return localOut
-	//chanel := in
-	//for _, stage := range stages {
-	//	select {
-	//	case <-done:
-	//		return nil
-	//	default:
-	//		chanel = stage(chanel)
-	//	}
-	//
-	//}
-	//
-	//return chanel
+		return out
+	}
 
-	//out := make(Bi)
-	//wg := sync.WaitGroup{}
-	//go func() {
-	//	defer close(out)
-	//
-	//	for val := range in {
-	//		wg.Add(1)
-	//		go func(val interface{}) {
-	//			for _, stage := range stages {
-	//
-	//			}
-	//			out <- strconv.Itoa(val.(int))
-	//			wg.Done()
-	//		}(val)
-	//
-	//	}
-	//	wg.Wait()
-	//}()
-	//
-	//return out
+	for _, stage := range stages {
+		in = stageCover(in, stage)
+	}
+
+	return in
 }
-
-//func sendToStages(val interface{}, done In, stages ...Stage) Out {
-//
-//	inLocal := make(Bi)
-//	outLocal := make(Bi)
-//	inLocal <- val
-//	for _, stage := range stages {
-//
-//		out := stage(inLocal)
-//		select {
-//		case <-done:
-//
-//		}
-//	}
-//}

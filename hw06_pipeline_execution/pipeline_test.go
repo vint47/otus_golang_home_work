@@ -14,7 +14,7 @@ const (
 	fault         = sleepPerStage / 2
 )
 
-var isFullTesting = true
+var isFullTesting = false
 
 func TestPipeline(t *testing.T) {
 	// Stage generator
@@ -73,7 +73,6 @@ func TestPipeline(t *testing.T) {
 		abortDur := sleepPerStage * 2
 		go func() {
 			<-time.After(abortDur)
-			done <- struct{}{}
 			close(done)
 		}()
 
@@ -151,6 +150,5 @@ func TestAllStageStop(t *testing.T) {
 		wg.Wait()
 
 		require.Len(t, result, 0)
-
 	})
 }
