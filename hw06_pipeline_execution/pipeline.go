@@ -8,7 +8,7 @@ type (
 
 type Stage func(in In) (out Out)
 
-func clearChanel(out Out) {
+func cleanChanel(out Out) {
 	go func() {
 		for temp := range out {
 			_ = temp
@@ -27,7 +27,7 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 			for {
 				select {
 				case <-done:
-					clearChanel(stageOut)
+					cleanChanel(stageOut)
 					return
 				case val, ok := <-stageOut:
 					if !ok {
