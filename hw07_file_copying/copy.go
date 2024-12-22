@@ -4,6 +4,7 @@ import (
 	"errors"
 	"io"
 	"os"
+	"syscall"
 
 	"github.com/cheggaaa/pb/v3"
 )
@@ -12,15 +13,45 @@ var (
 	ErrUnsupportedFile           = errors.New("unsupported file")
 	ErrOffsetExceedsFileSize     = errors.New("offset exceeds file size")
 	ErrOffsetOrLimitLessThanZero = errors.New("offset or limit less than zero")
+	ErrSameFile                  = errors.New("same file")
 )
+
+func isFileSame(fromPath, toPath string) (bool, error) {
+	if fromPath == toPath {
+		return true, nil
+	}
+
+	fileFrom, err := os.Stat(fromPath)
+	if err != nil {
+		return false, err
+	}
+
+	fileTo, err := os.Stat(toPath)
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+
+	fileFromData, okFrom := fileFrom.Sys().(*syscall.Stat_t)
+	fileToData, okTo := fileTo.Sys().(*syscall.Stat_t)
+
+	if !okFrom || !okTo {
+		return false, nil
+	}
+
+	isSame := fileFromData.Dev == fileToData.Dev && fileFromData.Ino == fileToData.Ino
+
+	return isSame, nil
+}
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
 	if limit < 0 || offset < 0 {
 		return ErrOffsetOrLimitLessThanZero
 	}
 
-	if fromPath == toPath {
-		return ErrUnsupportedFile
+	if isSame, err := isFileSame(fromPath, toPath); err != nil || isSame {
+		return ErrSameFile
 	}
 
 	fileFrom, err := os.Open(fromPath)
@@ -37,7 +68,7 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return ErrUnsupportedFile
 	}
 
-	if fi.Size() == 0 || fi.Size() < 0 {
+	if !fi.Mode().IsRegular() {
 		return ErrUnsupportedFile
 	}
 

@@ -55,4 +55,14 @@ func TestCopyError(t *testing.T) {
 		err := Copy("testdata/input.txt", "out.txt", 0, -1)
 		require.ErrorAs(t, err, &ErrOffsetOrLimitLessThanZero)
 	})
+
+	t.Run("SameFile", func(t *testing.T) {
+		err := Copy("testdata/input.txt", "./testdata/input.txt", 0, 0)
+		require.ErrorAs(t, err, &ErrSameFile)
+	})
+
+	t.Run("not file", func(t *testing.T) {
+		err := Copy("/dev/urandom", "out.txt", 0, 0)
+		require.ErrorAs(t, err, &ErrUnsupportedFile)
+	})
 }
