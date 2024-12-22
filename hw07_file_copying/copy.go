@@ -19,6 +19,10 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return ErrOffsetOrLimitLessThanZero
 	}
 
+	if fromPath == toPath {
+		return ErrUnsupportedFile
+	}
+
 	fileFrom, err := os.Open(fromPath)
 	if err != nil {
 		return ErrUnsupportedFile
