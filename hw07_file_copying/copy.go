@@ -28,14 +28,18 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		return ErrUnsupportedFile
 	}
 
+	defer func() {
+		_ = fileFrom.Close()
+	}()
+
 	fi, err := fileFrom.Stat()
 	if err != nil {
 		return ErrUnsupportedFile
 	}
 
-	defer func() {
-		_ = fileFrom.Close()
-	}()
+	if fi.Size() == 0 || fi.Size() < 0 {
+		return ErrUnsupportedFile
+	}
 
 	if offset > fi.Size() {
 		return ErrOffsetExceedsFileSize
