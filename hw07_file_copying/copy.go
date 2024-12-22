@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"os"
 
@@ -16,9 +15,6 @@ var (
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
-	fmt.Println("Copy from:", fromPath, "to:", toPath)
-	fmt.Println("Copy offset:", offset, "limit:", limit)
-
 	if limit < 0 || offset < 0 {
 		return ErrOffsetOrLimitLessThanZero
 	}
@@ -37,7 +33,7 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		_ = fileFrom.Close()
 	}()
 
-	if limit+offset > fi.Size() {
+	if offset > fi.Size() {
 		return ErrOffsetExceedsFileSize
 	}
 
